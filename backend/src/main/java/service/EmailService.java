@@ -1,4 +1,3 @@
-// src/main/java/com/example/demo/service/EmailService.java
 package com.example.demo.service;
 
 import com.example.demo.dto.ContactRequest;
@@ -10,6 +9,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
@@ -18,20 +19,59 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
+    // Updated to match your .env variables
+    @Value("${spring.mail.username:NOT_SET}")
+    private String smtpUsername;
+
+    @Value("${spring.mail.password:NOT_SET}")
+    private String smtpPassword;
+
+    @Value("${spring.mail.host:NOT_SET}")
+    private String smtpHost;
+
+    @Value("${spring.mail.port:0}")
+    private int smtpPort;
+
+    @PostConstruct
+    public void debugEmailConfig() {
+        logger.info("Email service initialized");
+        logger.info("SMTP Host: {}", smtpHost);
+        logger.info("SMTP Port: {}", smtpPort);
+        logger.info("SMTP Username: {}", smtpUsername);
+        logger.info("SMTP Password configured: {}", !smtpPassword.equals("NOT_SET") && !smtpPassword.isEmpty());
+
+        if (smtpPassword.equals("NOT_SET") || smtpPassword.isEmpty()) {
+            logger.error("SMTP password not configured! Check your .env file and environment variables.");
+        }
+
+        if (smtpUsername.equals("NOT_SET") || smtpUsername.isEmpty()) {
+            logger.error("SMTP username not configured! Check your .env file and environment variables.");
+        }
+
+        // Additional debug info
+        logger.info("Environment variables check:");
+        logger.info("SMTP_USERNAME env var: {}", System.getenv("SMTP_USERNAME"));
+        logger.info("SMTP_PASSWORD env var configured: {}", System.getenv("SMTP_PASSWORD") != null && !System.getenv("SMTP_PASSWORD").isEmpty());
+    }
+
     public boolean sendOtpEmail(String toEmail, String otp, String userName) {
         try {
+            logger.info("Attempting to send OTP email to: {}", toEmail);
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
             message.setSubject("Password Reset OTP - Your Ecommerce Store");
             message.setText(buildOtpEmailBody(userName, otp));
-            message.setFrom("ecommtest07@gmail.com");
+            message.setFrom("ecommtest07@gmail.com"); // Your verified sender email
 
+            logger.info("Sending email with SMTP config - Host: {}, Port: {}, Username: {}", smtpHost, smtpPort, smtpUsername);
             mailSender.send(message);
             logger.info("OTP email sent successfully to: {}", toEmail);
             return true;
 
         } catch (Exception e) {
             logger.error("Failed to send OTP email to {}: {}", toEmail, e.getMessage());
+            logger.error("Full error: ", e); // This will show the complete stack trace
             return false;
         }
     }
@@ -53,6 +93,8 @@ public class EmailService {
 
     public boolean sendPasswordResetConfirmation(String toEmail, String userName) {
         try {
+            logger.info("Sending password reset confirmation to: {}", toEmail);
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
             message.setSubject("Password Reset Successful - Your Ecommerce Store");
@@ -65,6 +107,7 @@ public class EmailService {
 
         } catch (Exception e) {
             logger.error("Failed to send confirmation email to {}: {}", toEmail, e.getMessage());
+            logger.error("Full error: ", e);
             return false;
         }
     }
@@ -84,6 +127,8 @@ public class EmailService {
 
     public boolean sendOrderConfirmationEmail(String toEmail, String userName, Order order) {
         try {
+            logger.info("Sending order confirmation to: {} for order: {}", toEmail, order.getId());
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
             message.setSubject("Order Confirmed #" + order.getId() + " - Your Ecommerce Store");
@@ -96,6 +141,7 @@ public class EmailService {
 
         } catch (Exception e) {
             logger.error("Failed to send order confirmation email to {} for order {}: {}", toEmail, order.getId(), e.getMessage());
+            logger.error("Full error: ", e);
             return false;
         }
     }
@@ -147,6 +193,8 @@ public class EmailService {
 
     public boolean sendOrderStatusUpdateEmail(String toEmail, String userName, Order order, String previousStatus, String newStatus) {
         try {
+            logger.info("Sending order status update to: {} for order: {} (status: {} -> {})", toEmail, order.getId(), previousStatus, newStatus);
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
             message.setSubject("Order Update #" + order.getId() + " - " + capitalizeStatus(newStatus) + " - Your Ecommerce Store");
@@ -159,6 +207,7 @@ public class EmailService {
 
         } catch (Exception e) {
             logger.error("Failed to send order status update email to {} for order {} (status: {} -> {}): {}", toEmail, order.getId(), previousStatus, newStatus, e.getMessage());
+            logger.error("Full error: ", e);
             return false;
         }
     }
@@ -247,6 +296,8 @@ public class EmailService {
 
     public boolean sendContactFormEmail(ContactRequest contactRequest) {
         try {
+            logger.info("Sending contact form email from: {} ({})", contactRequest.getUsername(), contactRequest.getEmail());
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo("ecommtest07@gmail.com");
             message.setSubject("Contact Form: " + contactRequest.getUsername());
@@ -260,6 +311,7 @@ public class EmailService {
 
         } catch (Exception e) {
             logger.error("Failed to send contact form email from {} ({}): {}", contactRequest.getUsername(), contactRequest.getEmail(), e.getMessage());
+            logger.error("Full error: ", e);
             return false;
         }
     }

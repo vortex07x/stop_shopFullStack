@@ -1,8 +1,7 @@
-// src/components/ChatIcon.js
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle } from "lucide-react";
-import "./ChatIcon.css"; // ✅ import styles
+import { Bot } from "lucide-react";
+import "./ChatIcon.css";
 
 const ChatIcon = ({ isLoginOpen }) => {
   const navigate = useNavigate();
@@ -14,11 +13,11 @@ const ChatIcon = ({ isLoginOpen }) => {
       <button
         onClick={() => navigate("/chat")}
         className="chat-icon-btn"
-        aria-label="Chat with us"
+        aria-label="Chat with AI Assistant"
       >
-        <MessageCircle color="white" size={36} />
+        <Bot color="white" size={28} />
       </button>
-      <span className="chat-tooltip">💬 Chat to know more</span>
+      <span className="chat-tooltip">🤖 Chat with AI Assistant</span>
     </div>
   );
 };

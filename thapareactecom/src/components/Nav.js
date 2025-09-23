@@ -1,33 +1,99 @@
 // src/components/Nav.js
 import React, { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { FiShoppingCart } from "react-icons/fi";
-import { FaUserCircle } from "react-icons/fa"; // ✅ Profile icon
+import { FaUserCircle } from "react-icons/fa";
 import { CgMenu, CgClose } from "react-icons/cg";
 import { useCartContext } from "../context/cart_context";
 import { Button } from "../styles/Button";
-import AuthForm from "./AuthForm"; // ✅ Login/Register popup
+import AuthForm from "./AuthForm";
 
 const Nav = () => {
   const [menuIcon, setMenuIcon] = useState(false);
   const [showAuthForm, setShowAuthForm] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // ✅ Track login state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userProfile, setUserProfile] = useState({
     name: '',
     avatar: ''
   });
+  const [notification, setNotification] = useState(null);
+  const navigate = useNavigate();
   
-  // FIXED: Changed from total_item to total_items to match cart context state
   const { total_items } = useCartContext();
 
-  // Function to truncate username to 10 characters
+  // Show toast notification
+  const showNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+  };
+
+  // Clear notifications after timeout
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  const isValidToken = (token) => {
+    if (!token) return false;
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+      
+      if (payload.exp && payload.exp < currentTime) {
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error validating token:", error);
+      return false;
+    }
+  };
+
+  const clearUserData = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userAvatar");
+    setIsLoggedIn(false);
+    setUserProfile({ name: '', avatar: '' });
+    
+    showNotification("Your session has expired. Please log in again.", 'warning');
+    
+    window.dispatchEvent(new CustomEvent('userLoggedOut'));
+    window.dispatchEvent(new Event("storage"));
+  };
+
+  const checkAuthStatus = () => {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      setIsLoggedIn(false);
+      setUserProfile({ name: '', avatar: '' });
+      return false;
+    }
+    
+    if (!isValidToken(token)) {
+      clearUserData();
+      return false;
+    }
+    
+    setIsLoggedIn(true);
+    updateUserProfile();
+    return true;
+  };
+
   const truncateUsername = (name) => {
     if (!name) return '';
     return name.length > 10 ? name.substring(0, 10) + '...' : name;
   };
 
-  // Function to get display name from localStorage or profile
   const getDisplayName = () => {
     if (userProfile.name && userProfile.name.trim() !== "") {
       return userProfile.name;
@@ -40,7 +106,6 @@ const Nav = () => {
     
     const userEmail = localStorage.getItem("userEmail");
     if (userEmail && userEmail.trim() !== "") {
-      // Convert email to a readable name (e.g., "john.doe@email.com" -> "John Doe")
       const emailName = userEmail.split("@")[0];
       
       if (emailName && emailName.length > 0) {
@@ -62,7 +127,6 @@ const Nav = () => {
     return "User";
   };
 
-  // Function to get avatar URL
   const getAvatarUrl = () => {
     if (userProfile.avatar && userProfile.avatar.trim() !== "") {
       return userProfile.avatar;
@@ -73,10 +137,9 @@ const Nav = () => {
       return storedAvatar;
     }
     
-    return null; // Will fallback to FaUserCircle icon
+    return null;
   };
 
-  // Function to update user profile data
   const updateUserProfile = () => {
     const name = getDisplayName();
     const avatar = getAvatarUrl();
@@ -84,59 +147,79 @@ const Nav = () => {
   };
 
   useEffect(() => {
-    // ✅ Initial check
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token);
+    checkAuthStatus();
     
-    if (token) {
-      updateUserProfile();
-    }
+    const tokenValidationInterval = setInterval(() => {
+      const token = localStorage.getItem("token");
+      if (token && !isValidToken(token)) {
+        clearUserData();
+      }
+    }, 30000);
 
-    // ✅ Listen for login/logout events (between tabs/windows)
-    const handleStorageChange = () => {
-      const updatedToken = localStorage.getItem("token");
-      setIsLoggedIn(!!updatedToken);
-      
-      if (updatedToken) {
-        updateUserProfile();
-      } else {
-        setUserProfile({ name: '', avatar: '' });
+    return () => clearInterval(tokenValidationInterval);
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'token' || e.key === null) {
+        checkAuthStatus();
       }
     };
 
-    // ✅ Listen for avatar updates (same page/tab)
     const handleAvatarUpdate = () => {
       if (isLoggedIn) {
         updateUserProfile();
       }
     };
 
-    // ✅ Listen for profile updates (same page/tab)
     const handleProfileUpdate = () => {
       if (isLoggedIn) {
         updateUserProfile();
       }
     };
 
+    const handleUserLoggedIn = () => {
+      checkAuthStatus();
+    };
+
+    const handleUserLoggedOut = () => {
+      setIsLoggedIn(false);
+      setUserProfile({ name: '', avatar: '' });
+    };
+
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener("avatarUpdated", handleAvatarUpdate);
     window.addEventListener("profileUpdated", handleProfileUpdate);
+    window.addEventListener("userLoggedIn", handleUserLoggedIn);
+    window.addEventListener("userLoggedOut", handleUserLoggedOut);
     
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("avatarUpdated", handleAvatarUpdate);
       window.removeEventListener("profileUpdated", handleProfileUpdate);
+      window.removeEventListener("userLoggedIn", handleUserLoggedIn);
+      window.removeEventListener("userLoggedOut", handleUserLoggedOut);
     };
   }, [isLoggedIn]);
 
   return (
     <Navbar>
+      {/* Toast Notification */}
+      {notification && (
+        <div className={`toast-notification ${notification.type}`}>
+          <div className="toast-content">
+            <span>{notification.message}</span>
+            <button onClick={() => setNotification(null)} className="toast-close">×</button>
+          </div>
+        </div>
+      )}
+
       <div className={menuIcon ? "navbar active" : "navbar"}>
         <ul className="navbar-lists">
           <li>
             <NavLink
               to="/"
-              className="navbar-link "
+              className="navbar-link"
               onClick={() => setMenuIcon(false)}
             >
               Home
@@ -145,7 +228,7 @@ const Nav = () => {
           <li>
             <NavLink
               to="/about"
-              className="navbar-link "
+              className="navbar-link"
               onClick={() => setMenuIcon(false)}
             >
               About
@@ -154,7 +237,7 @@ const Nav = () => {
           <li>
             <NavLink
               to="/products"
-              className="navbar-link "
+              className="navbar-link"
               onClick={() => setMenuIcon(false)}
             >
               Products
@@ -163,21 +246,19 @@ const Nav = () => {
           <li>
             <NavLink
               to="/contact"
-              className="navbar-link "
+              className="navbar-link"
               onClick={() => setMenuIcon(false)}
             >
               Contact
             </NavLink>
           </li>
 
-          {/* ✅ Show Log In if user is logged out */}
           {!isLoggedIn && (
             <li>
               <Button onClick={() => setShowAuthForm(true)}>Log In</Button>
             </li>
           )}
 
-          {/* ✅ Show Profile section with avatar and username if user is logged in */}
           {isLoggedIn && (
             <li>
               <NavLink to="/profile" className="profile-section" onClick={() => setMenuIcon(false)}>
@@ -189,7 +270,6 @@ const Nav = () => {
                       alt="Profile" 
                       className="profile-avatar"
                       onError={(e) => {
-                        // Fallback to icon if image fails to load
                         e.target.style.display = 'none';
                         e.target.nextSibling.style.display = 'block';
                       }}
@@ -203,7 +283,6 @@ const Nav = () => {
             </li>
           )}
 
-          {/* Cart - FIXED: Changed from total_item to total_items */}
           <li>
             <NavLink to="/cart" className="navbar-link cart-trolley--link">
               <FiShoppingCart className="cart-trolley" />
@@ -227,12 +306,10 @@ const Nav = () => {
         </div>
       </div>
 
-      {/* ✅ AuthForm modal - simplified onClose */}
       {showAuthForm && (
         <AuthForm
           onClose={() => {
             setShowAuthForm(false);
-            // ✅ The AuthForm now handles all login events automatically
           }}
         />
       )}
@@ -242,8 +319,73 @@ const Nav = () => {
 
 export default Nav;
 
-// ✅ styled-components with new profile section styles
 const Navbar = styled.nav`
+  /* Toast Notification Styles */
+  .toast-notification {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 10000;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: slideInFromRight 0.4s ease-out;
+    max-width: 400px;
+
+    &.info {
+      background: linear-gradient(135deg, #4299e1, #3182ce);
+      color: white;
+    }
+
+    &.warning {
+      background: linear-gradient(135deg, #ed8936, #dd6b20);
+      color: white;
+    }
+
+    &.error {
+      background: linear-gradient(135deg, #f56565, #e53e3e);
+      color: white;
+    }
+
+    .toast-content {
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      span {
+        flex: 1;
+        font-weight: 500;
+      }
+
+      .toast-close {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        font-size: 1.2rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+      }
+    }
+  }
+
+  @keyframes slideInFromRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  /* Desktop Navigation */
   .navbar-lists {
     display: flex;
     gap: 4rem;
@@ -295,19 +437,6 @@ const Navbar = styled.nav`
       top: -20%;
       left: 70%;
       font-weight: bold;
-    }
-  }
-
-  .profile-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: ${({ theme }) => theme.colors.text};
-    font-size: 2.4rem;
-    transition: color 0.3s ease;
-
-    &:hover {
-      color: ${({ theme }) => theme.colors.helper};
     }
   }
 
@@ -368,72 +497,192 @@ const Navbar = styled.nav`
     }
   }
 
+  /* Mobile Navigation */
   @media (max-width: ${({ theme }) => theme.media.mobile}) {
+    .toast-notification {
+      right: 1rem;
+      left: 1rem;
+      top: 1rem;
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 1rem 2rem;
+      position: relative;
+    }
+
     .mobile-navbar-btn {
-      display: inline-block;
-      z-index: 9999;
+      display: block;
+      z-index: 1001;
 
       .mobile-nav-icon {
-        font-size: 4rem;
+        font-size: 3rem;
         color: ${({ theme }) => theme.colors.text};
+        transition: all 0.3s ease;
+
+        &.close-outline {
+          display: none;
+        }
+      }
+    }
+
+    .navbar.active .mobile-navbar-btn {
+      .mobile-nav-icon {
+        display: none;
+
+        &.close-outline {
+          display: block;
+        }
       }
     }
 
     .navbar-lists {
-      width: 100vw;
-      height: 100vh;
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
-      background-color: ${({ theme }) => theme.colors.bg};
-      display: flex;
+      width: 100vw;
+      height: 100vh;
+      background: ${({ theme }) => theme.colors.bg};
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
-
-      visibility: hidden;
-      opacity: 0;
+      gap: 3rem;
+      
       transform: translateX(100%);
+      opacity: 0;
+      visibility: hidden;
       transition: all 0.3s ease-in-out;
-    }
+      z-index: 1000;
 
-    .active .navbar-lists {
-      visibility: visible;
-      opacity: 1;
-      transform: translateX(0);
-      z-index: 999;
+      li {
+        margin: 0;
+      }
 
       .navbar-link {
-        font-size: 3rem;
-      }
-    }
+        font-size: 3rem !important;
+        font-weight: 600;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        text-align: center;
+        display: block;
 
-    .cart-trolley {
-      font-size: 4rem !important;
-    }
-
-    .cart-total--item {
-      width: 3rem !important;
-      height: 3rem !important;
-      font-size: 1.6rem !important;
-    }
-
-    .profile-section {
-      padding: 1.2rem 2rem;
-      gap: 1.5rem;
-
-      .username {
-        font-size: 2.4rem;
-        font-weight: 700;
-      }
-
-      .avatar-container {
-        width: 4.5rem;
-        height: 4.5rem;
-
-        .profile-icon {
-          font-size: 3.5rem;
+        &:hover {
+          background: rgba(0, 123, 255, 0.1);
+          color: ${({ theme }) => theme.colors.helper};
         }
+      }
+
+      .profile-section {
+        padding: 1.5rem 2.5rem;
+        gap: 1.5rem;
+        border-radius: 25px;
+
+        .username {
+          font-size: 2.4rem;
+          font-weight: 700;
+        }
+
+        .avatar-container {
+          width: 4.5rem;
+          height: 4.5rem;
+
+          .profile-icon {
+            font-size: 3.5rem;
+          }
+        }
+      }
+
+      .cart-trolley--link {
+        padding: 1.5rem;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+
+        .cart-trolley {
+          font-size: 4rem !important;
+        }
+
+        .cart-total--item {
+          width: 3rem !important;
+          height: 3rem !important;
+          font-size: 1.6rem !important;
+          top: -10px;
+          right: -10px;
+          left: auto;
+        }
+      }
+
+      li button {
+        font-size: 2.4rem;
+        padding: 1.5rem 3rem;
+        border-radius: 15px;
+      }
+    }
+
+    .navbar.active .navbar-lists {
+      transform: translateX(0);
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .navbar {
+      padding: 1rem 1.5rem;
+    }
+
+    .mobile-navbar-btn .mobile-nav-icon {
+      font-size: 2.5rem;
+    }
+
+    .navbar-lists {
+      gap: 2.5rem;
+
+      .navbar-link {
+        font-size: 2.5rem !important;
+        padding: 0.8rem 1.5rem;
+      }
+
+      .profile-section {
+        padding: 1.2rem 2rem;
+        gap: 1rem;
+
+        .username {
+          font-size: 2rem;
+        }
+
+        .avatar-container {
+          width: 3.5rem;
+          height: 3.5rem;
+
+          .profile-icon {
+            font-size: 2.8rem;
+          }
+        }
+      }
+
+      .cart-trolley--link {
+        padding: 1.2rem;
+
+        .cart-trolley {
+          font-size: 3.5rem !important;
+        }
+
+        .cart-total--item {
+          width: 2.5rem !important;
+          height: 2.5rem !important;
+          font-size: 1.4rem !important;
+        }
+      }
+
+      li button {
+        font-size: 2rem;
+        padding: 1.2rem 2.5rem;
       }
     }
   }

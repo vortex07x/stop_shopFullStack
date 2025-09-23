@@ -25,3 +25,28 @@ yarn-error.log*
 
 # Local Netlify folder
 .netlify
+
+# ================================
+# Backend (Spring Boot) files
+# ================================
+target/
+*.jar
+*.war
+*.ear
+*.class
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS files
+Thumbs.db
+
+# Backend logs
+*.log

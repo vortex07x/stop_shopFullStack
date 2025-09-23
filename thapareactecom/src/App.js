@@ -45,10 +45,11 @@ const AdminRoute = ({ children }) => {
 function Layout({ isLoginOpen }) {
   const location = useLocation();
   const isChatPage = location.pathname === "/chat"; // detect if on chat page
+  const isAdminPage = location.pathname === "/admin"; // ✅ detect if on admin page
 
   return (
     <>
-      {!isChatPage && <Header />}
+      {!isChatPage && !isAdminPage && <Header />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -91,8 +92,8 @@ function Layout({ isLoginOpen }) {
         <Route path="*" element={<ErrorPage />} />
       </Routes>
 
-      {!isChatPage && <Footer />}
-      {!isChatPage && <ChatIcon isLoginOpen={isLoginOpen} />}
+      {!isChatPage && !isAdminPage && <Footer />}
+      {!isChatPage && !isAdminPage && <ChatIcon isLoginOpen={isLoginOpen} />}
     </>
   );
 }
