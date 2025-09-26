@@ -20,6 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.util.HashMap;
+import java.util.Map;
+
 // Simple response class for API responses
 class ApiResponse {
     private boolean success;
@@ -38,7 +41,7 @@ class ApiResponse {
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000") // allow React frontend
+@CrossOrigin(origins = "*", allowedHeaders = "*")  // Fixed CORS configuration
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -48,7 +51,17 @@ public class AuthController {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
-    // ✅ EXISTING: Register a new user
+    // Test endpoint to verify controller is working
+    @GetMapping("/test")
+    public ResponseEntity<Map<String, String>> testAuth() {
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Auth controller is working!");
+        response.put("endpoints", "/register, /login, /forgot-password, /verify-otp, /reset-password");
+        return ResponseEntity.ok(response);
+    }
+
+    // Register a new user
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserRegistrationDto dto) {
         try {
@@ -75,7 +88,7 @@ public class AuthController {
         }
     }
 
-    // ✅ EXISTING: Login user with email & password - now includes avatar
+    // Login user with email & password - now includes avatar
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
@@ -87,7 +100,7 @@ public class AuthController {
         }
     }
 
-    // ✅ NEW: Forgot Password - Send OTP to email
+    // Forgot Password - Send OTP to email
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         try {
@@ -122,7 +135,7 @@ public class AuthController {
         }
     }
 
-    // ✅ NEW: Verify OTP
+    // Verify OTP
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
         try {
@@ -142,7 +155,7 @@ public class AuthController {
         }
     }
 
-    // ✅ NEW: Reset Password
+    // Reset Password
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
