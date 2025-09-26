@@ -33,19 +33,23 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/health", "/public/**").permitAll()  // Add public endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
-//                        .requestMatchers("/api/products/**").permitAll()
-                        .requestMatchers("/api/contact/**").permitAll()
-                        .requestMatchers("/api/chat/**").permitAll()
+                        // Public endpoints - these should be accessible without authentication
+                        .requestMatchers("/", "/health", "/public/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()  // All auth endpoints
+                        .requestMatchers("/api/contact/**").permitAll()  // All contact endpoints
+                        .requestMatchers("/api/chat/**").permitAll()  // All chat endpoints
+                        // Authenticated endpoints
                         .requestMatchers("/api/cart/**").authenticated()
                         .requestMatchers("/api/orders/**").authenticated()
                         .requestMatchers("/api/users/**").authenticated()
+                        // Admin endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // All other requests require authentication
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
+                // Add JWT filter ONLY for authenticated endpoints
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -68,19 +72,24 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Allow multiple origins including Railway domain
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
-                "http://localhost:3001",
-                "https://stopshopfullstack-production.up.railway.app",
+        // Allow specific origins (be more specific in production)
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
                 "https://*.railway.app",
                 "https://*.netlify.app"
         ));
 
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        // Allow all common HTTP methods
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
+
+        // Allow all headers
         config.setAllowedHeaders(List.of("*"));
+
+        // Allow credentials
         config.setAllowCredentials(true);
+
+        // Cache preflight response
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
