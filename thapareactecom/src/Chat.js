@@ -130,7 +130,7 @@ const Chat = () => {
       
       console.log('Request body:', requestBody);
 
-      const response = await fetch('http://localhost:8080/api/chat/message', {
+      const response = await fetch('https://stopshopfullstack-production.up.railway.app/api/chat/message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

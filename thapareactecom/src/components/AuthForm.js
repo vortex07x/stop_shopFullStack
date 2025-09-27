@@ -68,7 +68,7 @@ const AuthForm = ({ onClose }) => {
     try {
       if (isLogin) {
         // Login API call
-        const response = await fetch("http://localhost:8080/api/auth/login", {
+        const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -113,7 +113,7 @@ const AuthForm = ({ onClose }) => {
         }
       } else {
         // Register API call
-        const response = await fetch("http://localhost:8080/api/auth/register", {
+        const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

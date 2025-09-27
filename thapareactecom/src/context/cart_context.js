@@ -83,7 +83,7 @@ export const CartProvider = ({ children }) => {
   // Test authentication first
   const testAuthentication = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/cart/test", {
+      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/cart/test", {
         method: "GET",
         headers: getAuthHeaders(),
       });
@@ -112,7 +112,7 @@ export const CartProvider = ({ children }) => {
     dispatch({ type: "SET_LOADING", payload: true });
 
     try {
-      const response = await fetch("http://localhost:8080/api/cart/my", {
+      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/cart/my", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -248,7 +248,7 @@ export const CartProvider = ({ children }) => {
 
       console.log("📦 Sending request:", requestData);
 
-      const response = await fetch("http://localhost:8080/api/cart/add", {
+      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/cart/add", {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify(requestData),
@@ -310,7 +310,7 @@ export const CartProvider = ({ children }) => {
       // Show immediate feedback by removing from local state first
       dispatch({ type: "REMOVE_ITEM", payload: cartItemId });
 
-      const response = await fetch(`http://localhost:8080/api/cart/remove/${cartItemId}`, {
+      const response = await fetch(`https://stopshopfullstack-production.up.railway.app/api/cart/remove/${cartItemId}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
@@ -381,7 +381,7 @@ export const CartProvider = ({ children }) => {
       dispatch({ type: "SET_INCREASE", payload: cartItemId });
 
       // Then sync with backend
-      const response = await fetch(`http://localhost:8080/api/cart/update-quantity`, {
+      const response = await fetch(`https://stopshopfullstack-production.up.railway.app/api/cart/update-quantity`, {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -435,7 +435,7 @@ export const CartProvider = ({ children }) => {
       dispatch({ type: "SET_DECREASE", payload: cartItemId });
 
       // Then sync with backend
-      const response = await fetch(`http://localhost:8080/api/cart/update-quantity`, {
+      const response = await fetch(`https://stopshopfullstack-production.up.railway.app/api/cart/update-quantity`, {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -476,7 +476,7 @@ export const CartProvider = ({ children }) => {
       // First clear local state for immediate feedback
       dispatch({ type: "CLEAR_CART" });
 
-      const response = await fetch("http://localhost:8080/api/cart/clear", {
+      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/cart/clear", {
         method: "DELETE",
         headers: getAuthHeaders(),
       });

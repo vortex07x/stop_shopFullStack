@@ -153,7 +153,7 @@ const AdminContext = createContext();
 export const AdminProvider = ({ children }) => {
   const [state, dispatch] = useReducer(adminReducer, initialState);
   
-  const API_BASE_URL = "http://localhost:8080/api/admin";
+  const API_BASE_URL = "https://stopshopfullstack-production.up.railway.app/api/admin";
   
   // Helper function to get auth headers
   const getAuthHeaders = () => {

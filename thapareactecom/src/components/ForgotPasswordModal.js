@@ -37,7 +37,7 @@ const ForgotPasswordModal = ({ onClose }) => {
     setErrors({});
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/forgot-password", {
+      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() })
@@ -79,7 +79,7 @@ const ForgotPasswordModal = ({ onClose }) => {
     setErrors({});
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/verify-otp", {
+      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -133,7 +133,7 @@ const ForgotPasswordModal = ({ onClose }) => {
     setErrors({});
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/reset-password", {
+      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

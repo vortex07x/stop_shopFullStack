@@ -62,7 +62,7 @@ const Contact = () => {
     try {
       console.log("Sending contact form data:", formData);
 
-      const response = await fetch("http://localhost:8080/api/contact/send", {
+      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/contact/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -139,7 +139,7 @@ const Contact = () => {
   // Test function to check backend connectivity
   const testConnection = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/contact/test", {
+      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/contact/test", {
         method: "GET",
         headers: {
           "Accept": "application/json",
