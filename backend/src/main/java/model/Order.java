@@ -43,8 +43,8 @@ public class Order {
     @Column(name = "order_total", nullable = false)
     private Double orderTotal;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference // This prevents circular reference
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference
     private List<OrderItem> items;
 
     // Calculated method for total items count
