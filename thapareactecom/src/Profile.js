@@ -70,7 +70,7 @@ const Profile = () => {
         return;
       }
 
-      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/user/profile", {
+      const response = await fetch("https://stopshop-backend.onrender.com/api/user/profile", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -118,7 +118,7 @@ const Profile = () => {
         return;
       }
 
-      const response = await fetch("https://stopshopfullstack-production.up.railway.app/api/user/avatar/generate", {
+      const response = await fetch("https://stopshop-backend.onrender.com/api/user/avatar/generate", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -164,7 +164,7 @@ const Profile = () => {
       // Fetch cart items count
       try {
         // Adjust this endpoint based on your actual cart API
-        const cartResponse = await fetch("https://stopshopfullstack-production.up.railway.app/api/cart/my", {
+        const cartResponse = await fetch("https://stopshop-backend.onrender.com/api/cart/my", {
           method: "GET",
           headers: { 
             "Authorization": `Bearer ${token}`,
@@ -200,7 +200,7 @@ const Profile = () => {
       // Fetch orders data
       try {
         // Adjust this endpoint based on your actual orders API
-        const ordersResponse = await fetch("https://stopshopfullstack-production.up.railway.app/api/orders/my-orders", {
+        const ordersResponse = await fetch("https://stopshop-backend.onrender.com/api/orders/my-orders", {
           method: "GET",
           headers: { 
             "Authorization": `Bearer ${token}`,
