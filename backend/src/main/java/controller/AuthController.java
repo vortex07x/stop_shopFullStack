@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.time.LocalDateTime; // ✅ Add this import
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ class ApiResponse {
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*", allowedHeaders = "*")  // Fixed CORS configuration
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -58,6 +59,15 @@ public class AuthController {
         response.put("status", "success");
         response.put("message", "Auth controller is working!");
         response.put("endpoints", "/register, /login, /forgot-password, /verify-otp, /reset-password");
+        return ResponseEntity.ok(response);
+    }
+
+    // ✅ Health check endpoint for cold start detection
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, String>> healthCheck() {
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("timestamp", LocalDateTime.now().toString());
         return ResponseEntity.ok(response);
     }
 

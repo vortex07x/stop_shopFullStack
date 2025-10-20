@@ -1,11 +1,10 @@
-// src/App.js
 import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useLocation,
-  Navigate, // ✅ added
+  Navigate,
 } from "react-router-dom";
 import About from "./About";
 import Home from "./Home";
@@ -22,17 +21,16 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Orders from "./Orders";
 import Profile from "./Profile";
-import Admin from "./Admin"; // ✅ Import Admin page
-import Chat from "./Chat"; // ✅ Chat page
-import ChatIcon from "./components/ChatIcon"; // ✅ floating chat icon
+import Admin from "./Admin";
+import Chat from "./Chat";
+import ChatIcon from "./components/ChatIcon";
+// ❌ Remove this line: import { ColdStartProvider } from "./context/coldstart_context";
 
-// ✅ Simple inline protected route
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/404" replace />;
 };
 
-// ✅ Admin protected route - checks both token and admin role
 const AdminRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   const userRole = localStorage.getItem("userRole") || "";
@@ -41,11 +39,10 @@ const AdminRoute = ({ children }) => {
   return (token && isAdmin) ? children : <Navigate to="/404" replace />;
 };
 
-// ✅ This wrapper handles conditional rendering
 function Layout({ isLoginOpen }) {
   const location = useLocation();
-  const isChatPage = location.pathname === "/chat"; // detect if on chat page
-  const isAdminPage = location.pathname === "/admin"; // ✅ detect if on admin page
+  const isChatPage = location.pathname === "/chat";
+  const isAdminPage = location.pathname === "/admin";
 
   return (
     <>
@@ -59,7 +56,6 @@ function Layout({ isLoginOpen }) {
         <Route path="/singleproduct/:id" element={<SingleProduct />} />
         <Route path="/cart" element={<Cart />} />
 
-        {/* ✅ Protected pages */}
         <Route
           path="/profile"
           element={
@@ -77,7 +73,6 @@ function Layout({ isLoginOpen }) {
           }
         />
 
-        {/* ✅ Admin only page */}
         <Route
           path="/admin"
           element={
@@ -87,8 +82,8 @@ function Layout({ isLoginOpen }) {
           }
         />
 
-        <Route path="/chat" element={<Chat />} /> {/* ✅ new chat route */}
-        <Route path="/404" element={<ErrorPage />} /> {/* ✅ explicit 404 route */}
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/404" element={<ErrorPage />} />
         <Route path="*" element={<ErrorPage />} />
       </Routes>
 
@@ -106,7 +101,6 @@ const App = () => {
       white: "#fff",
       black: " #212529",
       helper: "#8490ff",
-
       bg: "#F6F8FA",
       footer_bg: "#0a1435",
       btn: "rgb(98 84 243)",
@@ -124,11 +118,11 @@ const App = () => {
     },
   };
 
-  // later you can connect this with login/register modal state
   const [isLoginOpen, setIsLoginOpen] = React.useState(false);
 
   return (
     <ThemeProvider theme={theme}>
+      {/* ❌ Remove ColdStartProvider from here - it's now in index.js */}
       <Router>
         <GlobalStyle />
         <Layout isLoginOpen={isLoginOpen} />
