@@ -1,5 +1,3 @@
-//user
-//user
 package com.example.demo.model;
 
 import jakarta.persistence.*;
@@ -18,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "user") // Changed from "users" to "user"
+@Table(name = "users") // Changed from "user" to "users" - "user" is reserved in PostgreSQL
 public class User {
 
     @Id
@@ -32,20 +30,17 @@ public class User {
     @JsonIgnore // Don't serialize password
     private String password;
 
-    @Column(nullable = false, name = "name") // Map to existing "name" column
+    @Column(nullable = false, name = "name")
     private String name;
 
-    // Add avatar field to store avatar URL/identifier
-    @Column(name = "avatar", length = 500) // Make it long enough for URLs
+    @Column(name = "avatar", length = 500)
     private String avatar;
 
-    // Add role field that was missing
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     private Role role = Role.USER;
 
-    // Don't serialize orders and cart items to prevent circular references
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Order> orders;
@@ -54,7 +49,6 @@ public class User {
     @JsonIgnore
     private List<CartItem> cartItems;
 
-    // Add getRole method that was missing
     public Role getRole() {
         return role;
     }
@@ -63,7 +57,6 @@ public class User {
         this.role = role;
     }
 
-    // Avatar getter and setter
     public String getAvatar() {
         return avatar;
     }
@@ -72,7 +65,6 @@ public class User {
         this.avatar = avatar;
     }
 
-    // Helper methods for backward compatibility
     public String getFirstName() {
         if (name != null && name.contains(" ")) {
             return name.split(" ")[0];
@@ -94,12 +86,10 @@ public class User {
         return name != null ? name : "";
     }
 
-    // Setter for firstName/lastName compatibility
     public void setFirstName(String firstName) {
         if (this.name == null || this.name.isEmpty()) {
             this.name = firstName;
         } else {
-            // Update the first part of the name
             String lastName = getLastName();
             this.name = firstName + (lastName.isEmpty() ? "" : " " + lastName);
         }
